@@ -130,6 +130,9 @@ class Carrito {
               reject(`El producto ${sku} no se encuntra en el carrito`)
           }
         })
+        .catch((producto) => {
+          reject(`El producto ${sku} no existe`)
+        })
     })
   }
 }
@@ -182,7 +185,7 @@ const carrito = new Carrito();
 carrito.agregarProducto('FN312PPE', 5);
 carrito.agregarProducto('XX92LKI', 10);
 
-carrito.eliminarProducto('RT324GD', 10)
+carrito.eliminarProducto('RT324G', 10)
   .then((mensaje) => {console.log(mensaje)})
   .catch((mensaje) => {console.log(mensaje)})
 
