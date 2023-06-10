@@ -18,11 +18,11 @@
 **     -?c) Si intento agregar un producto que no existe debería mostrar un mensaje de error.
 ​
 ** 2) Agregar la función eliminarProducto a la clase Carrito
-**     a) La función eliminarProducto recibe un sku y una cantidad (debe devolver una promesa)
+**     -a) La función eliminarProducto recibe un sku y una cantidad (debe devolver una promesa)
 **     -b) Si la cantidad es menor a la cantidad de ese producto en el carrito, se debe restar esa cantidad al producto
 **     -c) Si la cantidad es mayor o igual a la cantidad de ese producto en el carrito, se debe eliminar el producto del carrito
 **     -d) Si el producto no existe en el carrito, se debe mostrar un mensaje de error
-**     e) La función debe retornar una promesa
+**     -e) La función debe retornar una promesa
 ​
 ** 3) Utilizar la función eliminarProducto utilizando .then() y .catch() */
 
@@ -65,8 +65,8 @@ class Carrito {
 
   //* función que agrega @{cantidad} de productos con @{sku} al carrito
   async agregarProducto(sku, cantidad) {
-    console.log(`Agregando ${cantidad} ${sku}`); //TODO habitar
-
+    console.log(`Agregando ${cantidad} ${sku}`);
+    
     // Busco el producto en la "base de datos"
     await findProductBySku(sku)
       .then((producto) => {
@@ -123,11 +123,11 @@ class Carrito {
               this.productos[indice].cantidad = this.productos[indice].cantidad - cantidad
               resolve(`Se resto la cantidad del producto ${sku} del carrito`)
             } else {
-                this.productos.splice(indice, 1)
-                resolve(`Se elimino el producto ${sku} del carrito`)
+              this.productos.splice(indice, 1)
+              resolve(`Se elimino el producto ${sku} del carrito`)
             }
           } else {
-              reject(`El producto ${sku} no se encuntra en el carrito`)
+            reject(`El producto ${sku} no se encuntra en el carrito`)
           }
         })
         .catch((producto) => {
