@@ -66,38 +66,43 @@ class Carrito {
   //* función que agrega @{cantidad} de productos con @{sku} al carrito
   async agregarProducto(sku, cantidad) {
     console.log(`Agregando ${cantidad} ${sku}`);
-    
+
     // Busco el producto en la "base de datos"
     await findProductBySku(sku)
       .then((producto) => {
         console.log(`Producto encontrado: ${producto.sku}`)
         
-        var enCarrito = null;
-
-        this.productos.map((prod) => {
-          prod.sku != sku ? enCarrito = false : enCarrito = true
-        })
-
-        if (!enCarrito) {
-          const nuevoProducto = new ProductoEnCarrito(sku, producto.nombre, cantidad);
-          this.productos.push(nuevoProducto);
-          this.precioTotal = this.precioTotal + (producto.precio * cantidad);
-
-          //TODO Actualizar stock
-
-          if (!this.categorias.includes(producto.categoria)) {
-            this.categorias.push(producto.categoria);
-          }
-
+        if (cantidad > producto.stock || producto.stock == 0 ) {
+          console.log(`No hay stock suficiente del producto ${sku}`)
         } else {
+          var enCarrito = null;
+          
           this.productos.map((prod) => {
-            if (prod.sku == sku) {
-              prod.cantidad = prod.cantidad + cantidad;
-              this.precioTotal = this.precioTotal + (producto.precio * cantidad);
-
-              //TODO Actualizar stock
+            prod.sku != sku ? enCarrito = false : enCarrito = true
+          })
+          
+          if (!enCarrito) {
+            const nuevoProducto = new ProductoEnCarrito(sku, producto.nombre, cantidad);
+            this.productos.push(nuevoProducto);
+            this.precioTotal = this.precioTotal + (producto.precio * cantidad);
+            console.log(`Se agrego producto ${sku}`)
+            
+            if (!this.categorias.includes(producto.categoria)) {
+              this.categorias.push(producto.categoria);
             }
-          });
+            
+            actualizarStock(sku, cantidad, true);            
+          } else {
+            this.productos.map((prod) => {
+              if (prod.sku == sku) {
+                prod.cantidad = prod.cantidad + cantidad;
+                this.precioTotal = this.precioTotal + (producto.precio * cantidad);
+                console.log(`Se actualizo la cantidad del producto ${sku}`)
+                
+                actualizarStock(sku, cantidad, true);
+              }
+            });
+          }
         }
       })
       .catch((prod) => { 
@@ -115,15 +120,20 @@ class Carrito {
         .then((producto)=>{
           console.log("Producto encontrado: "+producto.sku)
 
-          let indice = this.productos.findIndex((prod) => prod.sku == sku)
-          console.log (indice)
+          let indice = getIndex(sku, this.productos)
 
           if(indice != -1) {
             if (this.productos[indice].cantidad > cantidad) {
               this.productos[indice].cantidad = this.productos[indice].cantidad - cantidad
+
+              actualizarStock(sku, cantidad, false);
+
               resolve(`Se resto la cantidad del producto ${sku} del carrito`)
             } else {
               this.productos.splice(indice, 1)
+              
+              actualizarStock(sku, cantidad, false);
+
               resolve(`Se elimino el producto ${sku} del carrito`)
             }
           } else {
@@ -158,7 +168,7 @@ function findProductBySku(sku) {
     setTimeout(() => {
       const foundProduct = productosDelSuper.find(product => product.sku === sku);
       if (foundProduct) {
-        resolve(foundProduct);
+        resolve(foundProduct)
       } else {
         reject(`Product ${sku} not found`);
       }
@@ -166,6 +176,27 @@ function findProductBySku(sku) {
   });
 }
 
+
+//Actualiza el stock de productos del Super
+function actualizarStock(sku, cantidad, operacion) {
+  let indice = getIndex (sku, productosDelSuper)
+
+  if (operacion) {
+    productosDelSuper[indice].stock = productosDelSuper[indice].stock - cantidad
+    console.log(`Se redujo el stock del producto ${sku}`)
+
+  } else {
+    productosDelSuper[indice].stock = productosDelSuper[indice].stock + cantidad
+    console.log(`Se incremento el stock del producto ${sku}`)
+  }
+}
+
+
+//Obtiene el indice del producto dentro de la lista para actualizarlo
+function getIndex(sku, listado) {
+  let index = listado.findIndex((prod) => prod.sku == sku)
+  return index
+}
 
 
 //* Creo todos los productos que vende mi super
@@ -182,12 +213,15 @@ const jabon = new Producto('WE328NJ', 'Jabon', 4, 'higiene', 3);
 const productosDelSuper = [queso, gaseosa, cerveza, arroz, fideos, lavandina, shampoo, jabon];
 
 const carrito = new Carrito();
-carrito.agregarProducto('FN312PPE', 5);
-carrito.agregarProducto('XX92LKI', 10);
+// carrito.agregarProducto('FN312PPE', 5);
+carrito.agregarProducto('XX92LKI', 15);
+carrito.agregarProducto('XX92LKI', 5);
 
-carrito.eliminarProducto('RT324G', 10)
+//carrito.agregarProducto('XX92LKI', 3);
+
+carrito.eliminarProducto('XX92LKI', 1)
   .then((mensaje) => {console.log(mensaje)})
-  .catch((mensaje) => {console.log(mensaje)})
+  .catch((mensaje) => {console.log(mensaje)})  
 
 
 /**
